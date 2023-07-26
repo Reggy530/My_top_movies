@@ -5,6 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import requests
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
@@ -68,7 +69,13 @@ class AddMovieForm(FlaskForm):
 def home():
     if request.method == "POST":
         pass
-    movies = Movie.query.all()
+
+    movies = Movie.query.order_by(Movie.rating).all()
+    pozycja = len(movies)
+    for movie in movies:
+        movie.ranking = pozycja
+        pozycja -= 1
+
     return render_template("index.html", movies=movies)
 
 @app.route("/edit/<int:id>", methods=['GET', 'POST'])
@@ -85,6 +92,29 @@ def edit(id):
         return redirect(url_for("home"))
     return render_template("edit.html", movies=movies, id=id, form=form)
 
+@app.route("/edit/new/<title>/<img_url>/<year>/<description>", methods=['GET', 'POST'])
+def add_new(title, img_url, year, description):
+    print(title, img_url, year, description)
+
+    new_movie = Movie(
+        title=title,
+        year=year[:4],
+        description=description,
+        rating=0,
+        ranking="None",
+        review="",
+        img_url="https://image.tmdb.org/t/p/w500/"+img_url
+    )
+
+    with app.app_context():
+        db.session.add(new_movie)
+        db.session.commit()
+        redirect(url_for("edit", id=new_movie.id))
+
+    return redirect(url_for("edit", id=new_movie.id))
+
+
+
 @app.route("/delete/<int:id>", methods=['GET', 'POST'])
 def delete(id):
     movie = Movie.query.get(id)
@@ -98,6 +128,8 @@ def add():
     if request.method == "POST":
         title = request.form.get("movietitle")
         response = requests.get(url_moviewebs + title, headers=headers_moviewebs).text
+        response = json.loads(response)
+        response = response["results"]
         return render_template("select.html", title=response)
     form = AddMovieForm()
     movies = Movie.query.all()

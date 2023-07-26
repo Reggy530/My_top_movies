@@ -6,14 +6,18 @@
 <div class="container">
     <h1 class="heading">Select Movie</h1>
   <p>
-    <a href="#"> MOVIE TITLE - MOVIE RELEASE DATE</a>
-    {{title}}
-<!--      {% for a in title %}-->
-
-<!--            {{a}}-->
 
 
-<!--      {% endfor %}-->
+{% for titl in title %}
+    {% if titl['original_title'] and titl['poster_path'] and titl['release_date'] and titl['overview'] %}
+        <a href="{{ url_for('add_new', title=titl['original_title'], img_url=titl['poster_path'], year=titl['release_date'], description=titl['overview']) }}">
+            {{titl["original_title"]}} - {{titl["release_date"]}}
+        </a>
+        <br>
+    {% endif %}
+{% endfor %}
+
+
   </p>
 
 </div>
