@@ -137,7 +137,7 @@ def add():
 
 @app.route("/select", methods=['GET', 'POST'])
 def select():
-
+    print('')
     return render_template("select.html")
 
 
